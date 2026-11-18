@@ -12,6 +12,10 @@ along with less eye movements
 - International
 - Play, pause, next word & previous word
 - Control the speed at which words are shown
+- Open DRM-free EPUB books with the file picker, drag and drop or "Open with"
+- Continue where you left off, with a list of recent books
+- Light, dark and sepia themes
+- Side panel showing your progress in the current chapter or the whole book
 
 ## Install
 

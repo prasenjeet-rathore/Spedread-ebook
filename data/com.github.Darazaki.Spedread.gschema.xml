@@ -36,5 +36,36 @@
 			</description>
 			<default>true</default>
 		</key>
+		<key name="reading-theme" type="s">
+			<choices>
+				<choice value="system"/>
+				<choice value="light"/>
+				<choice value="sepia"/>
+				<choice value="dark"/>
+			</choices>
+			<summary>Reading theme</summary>
+			<description>
+				Controls the colors of the application
+			</description>
+			<default>"system"</default>
+		</key>
+		<key name="progress-panel-visible" type="b">
+			<summary>Show the progress panel</summary>
+			<description>
+				Whether the reading progress panel is shown on the side of the window
+			</description>
+			<default>true</default>
+		</key>
+		<key name="progress-scope" type="s">
+			<choices>
+				<choice value="chapter"/>
+				<choice value="book"/>
+			</choices>
+			<summary>Progress scope</summary>
+			<description>
+				Whether progress is measured against the current chapter or the whole book
+			</description>
+			<default>"chapter"</default>
+		</key>
 	</schema>
 </schemalist>

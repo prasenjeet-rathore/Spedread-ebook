@@ -1,10 +1,11 @@
 [Desktop Entry]
 Name=Spedread
 Comment=Read like a speedrunner!
-Exec=spedread
+Exec=spedread %U
 Terminal=false
 Type=Application
 Categories=GTK;Utility;
 StartupNotify=true
-Keywords=read;fast;speed;reading;
+Keywords=read;fast;speed;reading;epub;ebook;book;
+MimeType=application/epub+zip;
 Icon=com.github.Darazaki.Spedread

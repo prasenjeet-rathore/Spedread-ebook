@@ -6,7 +6,8 @@ appid=com.github.Darazaki.Spedread
 
 for x in \
     "data/$appid.desktop.in" \
-    src/*.vala
+    src/*.vala \
+    src/epub/*.vala
 do
     echo "$x"
 done | sort > po/POTFILES

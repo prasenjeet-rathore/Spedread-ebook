@@ -8,6 +8,7 @@ class Spedread.PivotLabel : Gtk.Widget {
     double _pivot_distance = 0.5;
     double _pivot_x = 80.0;
     bool _pivot_enabled = true;
+    Gdk.RGBA _pivot_color = Gdk.RGBA () { red = 1.0f, green = 0, blue = 0, alpha = 1.0f };
 
     /** Layout rebuilt whenever any metric-affecting property changes */
     Pango.Layout? _layout = null;
@@ -56,6 +57,12 @@ class Spedread.PivotLabel : Gtk.Widget {
     public bool pivot_enabled {
         get { return _pivot_enabled; }
         set { _pivot_enabled = value; invalidate (); }
+    }
+
+    /** The color of the pivot letter */
+    public Gdk.RGBA pivot_color {
+        get { return _pivot_color; }
+        set { _pivot_color = value; queue_draw (); }
     }
 
     public PivotLabel () {
@@ -336,9 +343,13 @@ class Spedread.PivotLabel : Gtk.Widget {
             attr_list.insert ((owned) foreground);
         }
 
-        // Make pivot red
+        // Highlight the pivot
         {
-            var foreground = Pango.attr_foreground_new (uint16.MAX, 0, 0);
+            var foreground = Pango.attr_foreground_new (
+                map_f2i (_pivot_color.red),
+                map_f2i (_pivot_color.green),
+                map_f2i (_pivot_color.blue)
+            );
             foreground.start_index = _pivot_byte_start;
             foreground.end_index = _pivot_byte_end;
             attr_list.insert ((owned) foreground);

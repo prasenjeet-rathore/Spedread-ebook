@@ -14,7 +14,7 @@ class Spedread.ReadTab : Gtk.Grid {
     const string PLAY_ICON = "media-playback-start-symbolic";
     const string STOP_ICON = "media-playback-stop-symbolic";
 
-    static string _default_text = _ ("Go to \"Text\" and paste your read!");
+    static string _default_text = _ ("Open a book or paste some text!");
 
     Gtk.ToggleButton _play;
     Gtk.Button _previous;
@@ -37,6 +37,11 @@ class Spedread.ReadTab : Gtk.Grid {
     /** The font used to show the current word */
     public string font {
         set { _word.font_desc = Pango.FontDescription.from_string (value); }
+    }
+
+    /** The color of the pivot letter */
+    public Gdk.RGBA pivot_color {
+        set { _word.pivot_color = value; }
     }
 
     /** Whether the user enabled the pivot in the app settings or not */

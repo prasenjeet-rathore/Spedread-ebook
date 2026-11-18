@@ -24,7 +24,7 @@ msgid "GTK speed reading software: Read like a speedrunner!"
 msgstr "Software GTK pro rychlé čtení: Čtěte ryche"
 
 #: data/com.github.Darazaki.Spedread.appdata.xml.in:29
-#: data/com.github.Darazaki.Spedread.desktop.in:3 src/MainWindow.vala:528
+#: data/com.github.Darazaki.Spedread.desktop.in:3 src/MainWindow.vala:1071
 msgid "Read like a speedrunner!"
 msgstr "Čtěte rychle"
 
@@ -37,93 +37,233 @@ msgstr ""
 "soustředit na myšlenku spíše než na jednotlivá slova a méně přitom pohyboval "
 "očima."
 
-#: data/com.github.Darazaki.Spedread.appdata.xml.in:38
+#: data/com.github.Darazaki.Spedread.appdata.xml.in:35
+msgid ""
+"Open DRM-free EPUB books, continue where you left off, read with a light, "
+"dark or sepia theme and follow your progress by chapter or through the whole "
+"book."
+msgstr ""
+
+#: data/com.github.Darazaki.Spedread.appdata.xml.in:43
 msgid "First tab, where you paste what you want to read"
 msgstr ""
 
-#: data/com.github.Darazaki.Spedread.appdata.xml.in:42
+#: data/com.github.Darazaki.Spedread.appdata.xml.in:47
 msgid "Second tab, where you can read your text"
 msgstr ""
 
-#: data/com.github.Darazaki.Spedread.appdata.xml.in:46
+#: data/com.github.Darazaki.Spedread.appdata.xml.in:51
 msgid "Press the play button to start speed reading"
 msgstr ""
 
 #: data/com.github.Darazaki.Spedread.desktop.in:9
-msgid "read;fast;speed;reading;"
-msgstr "čtení;rychlé;rychlost;čtení;"
+msgid "read;fast;speed;reading;epub;ebook;book;"
+msgstr ""
 
-#: src/MainWindow.vala:188
-msgid "End reached"
+#: src/epub/EpubReader.vala:157
+msgid "Untitled Book"
+msgstr ""
+
+#: src/epub/EpubReader.vala:1034
+msgid "Front Matter"
+msgstr ""
+
+#. TR: Used when a part of a book has no title. %d is its number
+#: src/epub/EpubReader.vala:1052
+#, c-format
+msgid "Chapter %d"
+msgstr ""
+
+#. TR: If plural is an issue, you can translate it as "Time left: %u h %u min"
+#: src/MainWindow.vala:303
+#, c-format
+msgid "%u h %u min left"
 msgstr ""
 
 #. TR: If plural is an issue, you can translate it as "Time left: %u min %u s"
-#: src/MainWindow.vala:205
+#: src/MainWindow.vala:307
 #, c-format
 msgid "%u min %u s left"
 msgstr ""
 
-#: src/MainWindow.vala:329
-msgid "Text"
-msgstr "Text"
-
-#: src/MainWindow.vala:330
-msgid "Read"
-msgstr "Číst"
-
-#: src/MainWindow.vala:368
-msgid "New Window (Ctrl+N)"
+#: src/MainWindow.vala:350
+msgid "End reached"
 msgstr ""
 
-#: src/MainWindow.vala:398
-msgid "Main Menu"
+#: src/MainWindow.vala:352
+msgid "End of chapter"
 msgstr ""
 
-#: src/MainWindow.vala:497
-msgid "This change will only be applied after you restart Spedread"
-msgstr "Tato změna se provede až po opětovném spuštění aplikace Spedread."
+#: src/MainWindow.vala:589
+msgid "This book is protected by DRM and can't be opened."
+msgstr ""
 
-#: src/MainWindow.vala:501
+#: src/MainWindow.vala:591
+msgid "This book has no readable text. It may only contain images."
+msgstr ""
+
+#: src/MainWindow.vala:593
+msgid "This book is too large to be opened."
+msgstr ""
+
+#: src/MainWindow.vala:596
+msgid "This file couldn't be read as an EPUB book."
+msgstr ""
+
+#: src/MainWindow.vala:635
 msgid "_OK"
 msgstr ""
 
-#: src/MainWindow.vala:522
+#: src/MainWindow.vala:654
+msgid "EPUB Books"
+msgstr ""
+
+#: src/MainWindow.vala:664 src/MainWindow.vala:678
+msgid "Open Book"
+msgstr ""
+
+#: src/MainWindow.vala:738
+msgid "Show Progress (F9)"
+msgstr ""
+
+#: src/MainWindow.vala:753
+msgid "Open Book (Ctrl+O)"
+msgstr ""
+
+#: src/MainWindow.vala:774
+msgid "Recent Books"
+msgstr ""
+
+#: src/MainWindow.vala:786
+msgid "Close Book"
+msgstr ""
+
+#: src/MainWindow.vala:797
+msgid "No recent books"
+msgstr ""
+
+#. TR: Shown under a book's title. %d is how much of the book was read
+#: src/MainWindow.vala:818
+#, c-format
+msgid "%d%% read"
+msgstr ""
+
+#: src/MainWindow.vala:845
+msgid "Remove from Recent Books"
+msgstr ""
+
+#: src/MainWindow.vala:874
+msgid "Text"
+msgstr "Text"
+
+#: src/MainWindow.vala:875
+msgid "Read"
+msgstr "Číst"
+
+#: src/MainWindow.vala:913
+msgid "New Window (Ctrl+N)"
+msgstr ""
+
+#: src/MainWindow.vala:943
+msgid "Main Menu"
+msgstr ""
+
+#: src/MainWindow.vala:1040
+msgid "This change will only be applied after you restart Spedread"
+msgstr "Tato změna se provede až po opětovném spuštění aplikace Spedread."
+
+#. TR: Reading theme following the system's light or dark preference
+#: src/MainWindow.vala:1049
+msgid "System"
+msgstr ""
+
+#: src/MainWindow.vala:1050
+msgid "Light"
+msgstr ""
+
+#: src/MainWindow.vala:1051
+msgid "Sepia"
+msgstr ""
+
+#: src/MainWindow.vala:1052
+msgid "Dark"
+msgstr ""
+
+#: src/MainWindow.vala:1065
 msgid "About Spedread..."
 msgstr "O programu Spedread …"
 
 #. TR: "Name <email@domain.com>", "Name https://website.example" or "Name"
-#: src/MainWindow.vala:527
+#: src/MainWindow.vala:1070
 msgid "translator-credits"
 msgstr "Pavel Fric <pavelfric@seznam.cz>"
 
-#: src/MainWindow.vala:576
+#: src/MainWindow.vala:1119
 msgid "Milliseconds per Word"
 msgstr "Milisekund na slovo"
 
-#: src/MainWindow.vala:578
+#: src/MainWindow.vala:1121
 msgid "Words at a Time"
 msgstr ""
 
-#: src/MainWindow.vala:580
+#: src/MainWindow.vala:1123
 msgid "Reading Font"
 msgstr "Písmo pro čtení"
 
-#: src/MainWindow.vala:582
+#: src/MainWindow.vala:1125
 msgid "Fixed Pivot"
 msgstr ""
 
-#: src/MainWindow.vala:584
+#: src/MainWindow.vala:1127
+msgid "Theme"
+msgstr ""
+
+#: src/MainWindow.vala:1129
 msgid "Use libadwaita"
 msgstr "Použít libadwaita"
 
-#: src/MainWindow.vala:621
+#: src/MainWindow.vala:1177
 msgid "Paste (Ctrl+P)"
 msgstr ""
 
+#: src/ProgressPanel.vala:39
+msgid "Chapter"
+msgstr ""
+
+#: src/ProgressPanel.vala:43
+msgid "Whole Book"
+msgstr ""
+
+#. TR: Reading progress, for example "42%"
+#: src/ProgressPanel.vala:117
+#, c-format
+msgid "%d%%"
+msgstr ""
+
+#: src/ProgressPanel.vala:119
+#, c-format
+msgid "Word %d of %d"
+msgstr ""
+
+#: src/ProgressPanel.vala:120
+#, c-format
+msgid "Group %d of %d"
+msgstr ""
+
+#: src/ProgressPanel.vala:130
+msgid "No text to read yet"
+msgstr ""
+
 #: src/ReadTab.vala:17
-msgid "Go to \"Text\" and paste your read!"
-msgstr "Přejděte na \"Text\" a vložte své čtení!"
+msgid "Open a book or paste some text!"
+msgstr ""
 
 #: src/SearchBar.vala:25
 msgid "Find in text"
 msgstr ""
+
+#~ msgid "read;fast;speed;reading;"
+#~ msgstr "čtení;rychlé;rychlost;čtení;"
+
+#~ msgid "Go to \"Text\" and paste your read!"
+#~ msgstr "Přejděte na \"Text\" a vložte své čtení!"

@@ -44,6 +44,12 @@ if not get_option('force_legacy_libs')
             'GTK_4_10': 'gtk4 >=4.10.0 detected, extra features enabled',
         }
     endif
+
+    if gtk4_version.version_compare('>=4.20.0')
+        preprocessor_definitions += {
+            'GTK_4_20': 'gtk4 >=4.20.0 detected, extra features enabled',
+        }
+    endif
 endif
 
 if host_machine.system() == 'windows'
@@ -66,6 +72,8 @@ spedread_dependencies = [
     cc.find_library('m'),
     gtk4_dependency,
     libadwaita_dependency,
+    dependency('libxml-2.0'),
+    dependency('libarchive'),
 ]
 
 config_data = configuration_data()
@@ -82,9 +90,15 @@ config_file = configure_file(
     configuration: config_data,
 )
 
-spedread_sources = files(
+word_index_source = files('WordIndex.vala')
+epub_sources = files('epub/Book.vala', 'epub/EpubReader.vala')
+
+spedread_sources = word_index_source + epub_sources + files(
     'App.vala',
-    'WordIndex.vala',
+    'epub/BookLoader.vala',
+    'epub/BookStore.vala',
+    'ProgressPanel.vala',
+    'ThemeManager.vala',
     'ReadTab.vala',
     'AppSettings.vala',
     'TextTab.vala',

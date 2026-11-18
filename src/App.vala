@@ -2,7 +2,8 @@ public abstract class Spedread.App {
     /** The default margin and spacing used in this app */
     public const int MARGIN = 12;
 
-    const ApplicationFlags APP_FLAGS = ApplicationFlags.NON_UNIQUE;
+    const ApplicationFlags APP_FLAGS = ApplicationFlags.NON_UNIQUE
+        | ApplicationFlags.HANDLES_OPEN;
 
     static string get_locale_dir () {
 #if WINDOWS
@@ -32,9 +33,24 @@ public abstract class Spedread.App {
             app = new Gtk.Application (APP_ID, APP_FLAGS);
         }
 
+        // Must happen before books get parsed outside of the main thread
+        Xml.Parser.init ();
+
+        app.startup.connect (() => {
+            ThemeManager.get_default ().start ();
+        });
+
         app.activate.connect (() => {
             var main_window = new MainWindow (app);
             main_window.present ();
+        });
+
+        app.open.connect ((files, hint) => {
+            foreach (var file in files) {
+                var main_window = new MainWindow (app);
+                main_window.present ();
+                main_window.open_file (file);
+            }
         });
 
         // Recommended GNU way to initialize gettext

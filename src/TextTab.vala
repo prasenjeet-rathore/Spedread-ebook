@@ -5,8 +5,20 @@ class Spedread.TextTab : Gtk.Box {
 
     const string BIGGER_TEXT_TAG_NAME = "bigger-text";
     const int TEXT_SIZE = 12;
+    const int HEADING_SIZE = 18;
 
     TagManager _tag_manager;
+    Gtk.TextTag _heading_tag;
+    Gtk.TextTag _bold_tag;
+    Gtk.TextTag _italic_tag;
+
+    /** Whether the text can only be read, which is the case for books */
+    public bool read_only {
+        set {
+            input.editable = !value;
+            input.cursor_visible = !value;
+        }
+    }
 
     /** Manages tags that are applied to portions the main text view */
     public class TagManager {
@@ -34,6 +46,22 @@ class Spedread.TextTab : Gtk.Box {
             tag.foreground = foreground;
             tag.foreground_set = true;
             return tag;
+        }
+
+        static void set_colors (Gtk.TextTag tag, string background, string foreground) {
+            tag.background = background;
+            tag.foreground = foreground;
+        }
+
+        /** Use colors that are readable with the current theme */
+        public void apply_palette (ThemePalette palette) {
+            set_colors (next_word, palette.word_background, palette.word_foreground);
+            set_colors (needle, palette.match_background, palette.match_foreground);
+            set_colors (
+                selected_needle,
+                palette.selected_match_background,
+                palette.selected_match_foreground
+            );
         }
     }
 
@@ -74,8 +102,50 @@ class Spedread.TextTab : Gtk.Box {
             bounds.apply_tag (bigger_text);
         });
 
+        // Tags created later take priority over the text size set above
+        _heading_tag = buffer.create_tag (
+            "book-heading",
+            "size", HEADING_SIZE * Pango.SCALE,
+            "weight", Pango.Weight.BOLD
+        );
+        _bold_tag = buffer.create_tag ("book-bold", "weight", Pango.Weight.BOLD);
+        _italic_tag = buffer.create_tag ("book-italic", "style", Pango.Style.ITALIC);
+
         append (scrolled);
         append (search_bar);
+    }
+
+    /** Use colors that are readable with the current theme */
+    public void apply_palette (ThemePalette palette) {
+        _tag_manager.apply_palette (palette);
+    }
+
+    /** Replace the text with a formatted book */
+    public void show_book (Book book) {
+        var buffer = input.buffer;
+        buffer.text = book.text;
+
+        foreach (var style in book.styles) {
+            Gtk.TextIter start, end;
+            buffer.get_iter_at_offset (out start, style.start);
+            buffer.get_iter_at_offset (out end, style.end);
+            buffer.apply_tag (tag_for (style.kind), start, end);
+        }
+
+        Gtk.TextIter beginning;
+        buffer.get_start_iter (out beginning);
+        buffer.place_cursor (beginning);
+    }
+
+    Gtk.TextTag tag_for (StyleKind kind) {
+        switch (kind) {
+            case StyleKind.HEADING:
+                return _heading_tag;
+            case StyleKind.BOLD:
+                return _bold_tag;
+            default:
+                return _italic_tag;
+        }
     }
 
     /** Highlight the text between `bounds`, removing any other highlight */

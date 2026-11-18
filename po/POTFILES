@@ -1,11 +1,17 @@
 data/com.github.Darazaki.Spedread.desktop.in
 src/AppSettings.vala
 src/App.vala
+src/epub/BookLoader.vala
+src/epub/BookStore.vala
+src/epub/Book.vala
+src/epub/EpubReader.vala
 src/MainWindow.vala
 src/PivotLabel.vala
+src/ProgressPanel.vala
 src/ReadTab.vala
 src/SearchBar.vala
 src/TextBoundsList.vala
 src/TextBounds.vala
 src/TextTab.vala
+src/ThemeManager.vala
 src/WordIndex.vala

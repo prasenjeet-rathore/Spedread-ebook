@@ -47,21 +47,50 @@ class Spedread.WordIndex {
     public void invalidate () {
         _valid = false;
         _size = 0;
-        _char_count = 0;
-        _chars = new unichar[0];
-        _attrs = new Pango.LogAttr[0];
-        _line_starts = new int[0];
+        release_build_data ();
     }
 
-    /** Rebuild the index from the whole buffer */
-    public void rebuild (Gtk.TextBuffer buffer, int words_at_a_time) {
+    /** Index of the last word starting at or before `offset`, or the first
+        word if there is none. Return -1 when the index is empty. */
+    public int word_at_offset (int offset) {
+        if (_size == 0) {
+            return -1;
+        }
+
+        return int.max (first_word_from (offset + 1) - 1, 0);
+    }
+
+    /** Index of the first word starting at or after `offset`, or `length` if
+        there is none */
+    public int first_word_from (int offset) {
+        var low = 0;
+        var high = _size;
+
+        while (low < high) {
+            var middle = low + (high - low) / 2;
+
+            if (_starts[middle] < offset) {
+                low = middle + 1;
+            } else {
+                high = middle;
+            }
+        }
+
+        return low;
+    }
+
+    /** Rebuild the index from `text`. This doesn't touch any widget so it can
+        run outside of the main thread. Words are never grouped across the
+        sorted character offsets in `boundaries`. */
+    public void rebuild (
+        string text,
+        int words_at_a_time,
+        Pango.Language? language = null,
+        int[]? boundaries = null
+    ) {
         _size = 0;
         _valid = false;
 
-        Gtk.TextIter start, end;
-        buffer.get_bounds (out start, out end);
-
-        var text = buffer.get_text (start, end, true);
         _char_count = text.char_count ();
 
         _chars = new unichar[_char_count];
@@ -84,10 +113,12 @@ class Spedread.WordIndex {
         // Pango provides the same word boundaries GTK uses internally. Doing
         // this once for the whole text avoids an expensive `Gtk.TextIter`
         // lookup for every word
-        Gtk.TextIter begin;
-        buffer.get_start_iter (out begin);
         _attrs = new Pango.LogAttr[_char_count + 1];
-        Pango.get_log_attrs (text, -1, -1, begin.get_language (), _attrs);
+        Pango.get_log_attrs (
+            text, -1, -1,
+            language ?? Pango.Language.get_default (),
+            _attrs
+        );
 
         // Cache where each line starts so word detection can cross lines
         // without asking GTK for an offset every time
@@ -100,6 +131,8 @@ class Spedread.WordIndex {
         _line_starts += _char_count;
 
         var cursor = 0;
+        var next_boundary = 0;
+        var boundary_count = boundaries != null ? boundaries.length : 0;
 
         for ( ;; ) {
             while (cursor < _char_count && _chars[cursor].isspace ()) {
@@ -126,10 +159,35 @@ class Spedread.WordIndex {
                 end_of_word = extend_word (start_char, ref cursor, false);
             }
 
+            while (next_boundary < boundary_count
+                && boundaries[next_boundary] <= start_char) {
+                next_boundary++;
+            }
+
+            if (next_boundary < boundary_count
+                && cursor > boundaries[next_boundary]) {
+                cursor = boundaries[next_boundary];
+                end_of_word = int.min (end_of_word, cursor);
+
+                while (end_of_word > start_char
+                    && _chars[end_of_word - 1].isspace ()) {
+                    end_of_word--;
+                }
+            }
+
             append (start_char, end_of_word);
         }
 
+        // These are only needed while building the index
+        release_build_data ();
         _valid = true;
+    }
+
+    void release_build_data () {
+        _char_count = 0;
+        _chars = new unichar[0];
+        _attrs = new Pango.LogAttr[0];
+        _line_starts = new int[0];
     }
 
     /** Find the line containing `pos`, using the cached line starts */
