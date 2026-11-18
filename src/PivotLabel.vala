@@ -8,6 +8,7 @@ class Spedread.PivotLabel : Gtk.Widget {
     double _pivot_distance = 0.5;
     double _pivot_x = 80.0;
     bool _pivot_enabled = true;
+    bool _bionic_enabled = false;
     Gdk.RGBA _pivot_color = Gdk.RGBA () { red = 1.0f, green = 0, blue = 0, alpha = 1.0f };
 
     /** Layout rebuilt whenever any metric-affecting property changes */
@@ -46,17 +47,28 @@ class Spedread.PivotLabel : Gtk.Widget {
         }
     }
 
-    /** X offset from the left edge at which the pivot will be anchored
+    /** Space reserved before the pivot when computing the minimum width
         (default: 80.0 px) */
     public double pivot_x {
         get { return _pivot_x; }
-        set { _pivot_x = value; queue_draw (); }
+        set { _pivot_x = value; queue_resize (); }
     }
 
     /** Whether the label should have a pivot behavior or not */
     public bool pivot_enabled {
         get { return _pivot_enabled; }
         set { _pivot_enabled = value; invalidate (); }
+    }
+
+    /** Whether the beginning of each word is emphasized */
+    public bool bionic_enabled {
+        get { return _bionic_enabled; }
+        set {
+            if (_bionic_enabled != value) {
+                _bionic_enabled = value;
+                invalidate ();
+            }
+        }
     }
 
     /** The color of the pivot letter */
@@ -81,10 +93,43 @@ class Spedread.PivotLabel : Gtk.Widget {
         _layout.set_text (_text, -1);
         _layout.set_font_description (_font_desc);
         _layout.set_single_paragraph_mode (true);
+        // Font weights change the size of letters so this must come first
+        _layout.set_attributes (build_text_attributes ());
 
         if (_pivot_enabled) compute_pivot ();
         queue_draw ();
         queue_resize ();
+    }
+
+    static void add_weight (Pango.AttrList list, int start, int end, Pango.Weight weight) {
+        if (start < end) {
+            var attribute = Pango.attr_weight_new (weight);
+            attribute.start_index = start;
+            attribute.end_index = end;
+            list.insert ((owned) attribute);
+        }
+    }
+
+    /** Attributes for bionic reading. The rest of each word uses a normal
+        weight so that the emphasis remains visible with bold fonts. */
+    Pango.AttrList build_text_attributes () {
+        var list = new Pango.AttrList ();
+
+        if (!_bionic_enabled) {
+            return list;
+        }
+
+        var ranges = BionicText.bold_ranges (_text);
+        var position = 0;
+
+        for (var i = 0; i + 1 < ranges.length; i += 2) {
+            add_weight (list, position, ranges[i], Pango.Weight.NORMAL);
+            add_weight (list, ranges[i], ranges[i + 1], Pango.Weight.BOLD);
+            position = ranges[i + 1];
+        }
+
+        add_weight (list, position, _text.length, Pango.Weight.NORMAL);
+        return list;
     }
 
     /** Return device px per em unit for current font (if possible) */
@@ -286,7 +331,7 @@ class Spedread.PivotLabel : Gtk.Widget {
 
         if (!_pivot_enabled) {
             // Plain centred label: no attributes, horizontally centred
-            _layout.set_attributes (null);
+            _layout.set_attributes (build_text_attributes ());
             float x_off = (float) ((alloc_w - pw / Pango.SCALE) / 2.0);
             var pt = Graphene.Point ();
             pt.x = x_off;
@@ -305,22 +350,24 @@ class Spedread.PivotLabel : Gtk.Widget {
 
         assert (_pivot_enabled);
 
-        // Try to guess expected text direction based on current and previous
-        // values
+        // Center the pivot letter, shifting the word only when it wouldn't
+        // fit otherwise
 
         var is_rtl = is_text_rtl ();
+        var word_width = pw / Pango.SCALE;
 
-        float x_off;
-        if (is_rtl) {
-            // Pivot leading edge lands at `_pivot_x` from the widget's right edge
-            Pango.Rectangle trail_strong, trail_weak;
-            _layout.get_cursor_pos (_pivot_byte_start, out trail_strong, out trail_weak);
-            var trail_px = (double) trail_strong.x / Pango.SCALE;
-            x_off = (float) (alloc_w - _pivot_x - trail_px);
+        var pivot_rect = _layout.index_to_pos (_pivot_byte_start);
+        var pivot_center = (pivot_rect.x + pivot_rect.width / 2.0) / Pango.SCALE;
+        var centered = alloc_w / 2.0 - pivot_center;
+
+        double x_position;
+        if (word_width > alloc_w) {
+            x_position = is_rtl ? alloc_w - word_width : 0.0;
         } else {
-            // Pivot leading edge lands at `_pivot_x` from the widget's left edge
-            x_off = (float) (_pivot_x - (double) _pivot_pango_x / Pango.SCALE);
+            x_position = centered.clamp (0.0, alloc_w - word_width);
         }
+
+        var x_off = (float) x_position;
 
         // Read CSS foreground colour
 #if GTK_4_10
@@ -329,7 +376,7 @@ class Spedread.PivotLabel : Gtk.Widget {
         var fg = get_style_context ().get_color ();
 #endif
 
-        var attr_list = new Pango.AttrList ();
+        var attr_list = build_text_attributes ();
 
         // Before pivot
         if (_pivot_byte_start > 0) {

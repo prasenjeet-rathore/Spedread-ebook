@@ -1,4 +1,4 @@
-/** Shows how far the reader is in the current chapter or in the whole text */
+/** Shows the reading progress and the table of contents */
 class Spedread.ProgressPanel : Gtk.Box {
     const string SCOPE_KEY = "progress-scope";
     const int PANEL_WIDTH = 200;
@@ -10,6 +10,13 @@ class Spedread.ProgressPanel : Gtk.Box {
     Gtk.Label _percent;
     Gtk.Label _position;
     Gtk.Label _time_left;
+    Gtk.Stack _pages;
+    Gtk.ListBox _chapters;
+    Gtk.ScrolledWindow _chapters_scroll;
+    int _current_chapter = -1;
+
+    /** When the user picks a chapter in the table of contents */
+    public signal void chapter_activated (int index);
 
     /** When the user chooses what progress is measured against */
     public signal void scope_changed ();
@@ -17,11 +24,6 @@ class Spedread.ProgressPanel : Gtk.Box {
     /** Whether progress is currently measured against the chapter */
     public bool uses_chapter_scope {
         get { return _chapter_button.sensitive && _chapter_button.active; }
-    }
-
-    /** Whether the text has chapters at all */
-    public bool has_chapters {
-        set { _chapter_button.sensitive = value; }
     }
 
     public ProgressPanel () {
@@ -63,14 +65,54 @@ class Spedread.ProgressPanel : Gtk.Box {
         _position = new_label ();
         _time_left = new_label ();
 
-        append (scope_box);
-        append (_title);
-        append (_bar);
-        append (_percent);
-        append (_position);
-        append (_time_left);
+        var progress_page = new Gtk.Box (Gtk.Orientation.VERTICAL, App.MARGIN);
+        progress_page.append (scope_box);
+        progress_page.append (_title);
+        progress_page.append (_bar);
+        progress_page.append (_percent);
+        progress_page.append (_position);
+        progress_page.append (_time_left);
+
+        _chapters = new Gtk.ListBox () {
+            selection_mode = Gtk.SelectionMode.SINGLE,
+        };
+        _chapters.add_css_class ("navigation-sidebar");
+        _chapters.set_placeholder (new Gtk.Label (_ ("No chapters")) {
+            margin_top = App.MARGIN,
+        });
+        _chapters.row_activated.connect (row => chapter_activated (row.get_index ()));
+
+        _chapters_scroll = new Gtk.ScrolledWindow () {
+            child = _chapters,
+            hscrollbar_policy = Gtk.PolicyType.NEVER,
+            vexpand = true,
+        };
+
+        _pages = new Gtk.Stack () {
+            vexpand = true,
+        };
+        _pages.add_titled (progress_page, "progress", _ ("Progress"));
+        _pages.add_titled (_chapters_scroll, "contents", _ ("Contents"));
+
+        append (new Gtk.StackSwitcher () {
+            stack = _pages,
+        });
+        append (_pages);
 
         var settings = AppSettings.settings;
+        settings.bind (
+            "side-panel-view",
+            _pages, "visible-child-name",
+            SettingsBindFlags.DEFAULT
+        );
+        _pages.notify["visible-child"].connect (() => {
+            // The rows only have a position once they've been laid out
+            Idle.add (() => {
+                reveal_current_chapter ();
+                return false;
+            });
+        });
+
         settings.changed[SCOPE_KEY].connect (load_scope);
         load_scope ();
 
@@ -100,14 +142,68 @@ class Spedread.ProgressPanel : Gtk.Box {
         scope_changed ();
     }
 
-    /** Show `done` steps out of `total` */
+    /** Replace the table of contents. No chapters means plain text. */
+    public void set_chapters (Chapter[] chapters) {
+        _chapter_button.sensitive = chapters.length > 0;
+        _current_chapter = -1;
+
+        Gtk.ListBoxRow? row;
+        while ((row = _chapters.get_row_at_index (0)) != null) {
+            _chapters.remove (row);
+        }
+
+        foreach (var chapter in chapters) {
+            _chapters.append (new Gtk.Label (chapter.title) {
+                xalign = 0,
+                wrap = true,
+                wrap_mode = Pango.WrapMode.WORD_CHAR,
+                max_width_chars = 20,
+            });
+        }
+    }
+
+    void select_chapter (int index) {
+        if (index == _current_chapter) {
+            return;
+        }
+
+        _current_chapter = index;
+        _chapters.select_row (index >= 0 ? _chapters.get_row_at_index (index) : null);
+        reveal_current_chapter ();
+    }
+
+    /** Scroll the table of contents to the current chapter */
+    void reveal_current_chapter () {
+        var row = _chapters.get_selected_row ();
+
+        if (row == null || _pages.visible_child != _chapters_scroll) {
+            return;
+        }
+
+        var origin = Graphene.Point ();
+        origin.x = 0;
+        origin.y = 0;
+
+        Graphene.Point position;
+        if (row.compute_point (_chapters, origin, out position)) {
+            _chapters_scroll.vadjustment.clamp_page (
+                position.y,
+                position.y + row.get_height ()
+            );
+        }
+    }
+
+    /** Show `done` steps out of `total` inside chapter `chapter`, if any */
     public void update (
         string title,
+        int chapter,
         int done,
         int total,
         int words_at_a_time,
         string time_left
     ) {
+        select_chapter (chapter);
+
         var fraction = total > 0 ? (double) done / total : 0.0;
 
         _title.label = title;
@@ -123,6 +219,7 @@ class Spedread.ProgressPanel : Gtk.Box {
 
     /** Show that there's nothing to measure */
     public void clear () {
+        select_chapter (-1);
         _title.label = "";
         _title.visible = false;
         _bar.fraction = 0;

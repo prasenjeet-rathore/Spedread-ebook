@@ -326,9 +326,10 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
         var first = 0;
         var end = _word_index.length;
         var title = "";
+        var chapter = -1;
 
         if (_book != null) {
-            var chapter = chapter_of_word (word);
+            chapter = chapter_of_word (word);
             title = _book.chapters[chapter].title;
 
             if (_progress.uses_chapter_scope) {
@@ -355,6 +356,7 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
         _read.time_left = time_left;
         _progress.update (
             title,
+            chapter,
             word + 1 - first,
             end - first,
             (int) _words_at_a_time.value,
@@ -401,7 +403,7 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
         _record = null;
         _chapter_first_words = {};
         _text.read_only = false;
-        _progress.has_chapters = false;
+        _progress.set_chapters ({});
         title = "Spedread";
     }
 
@@ -455,7 +457,27 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
             return;
         }
 
-        _current_word = _word_index.word_at_offset (offset);
+        go_to_word (_word_index.word_at_offset (offset));
+    }
+
+    /** Jump to the first word of a chapter */
+    void go_to_chapter (int chapter) {
+        if (_book == null || !ensure_word_index ()) {
+            return;
+        }
+
+        // A chapter without any words leads to the next word available
+        go_to_word (int.min (_chapter_first_words[chapter], _word_index.length - 1));
+        save_position ();
+
+        if (is_tab_read ()) {
+            _read.focus_play_button ();
+        }
+    }
+
+    /** Show the word at index `word` and update everything depending on it */
+    void go_to_word (int word) {
+        _current_word = word;
         show_word (_current_word);
         _read.allow_playing = _word_index.length > 1;
         update_word_navigation ();
@@ -608,7 +630,7 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
 
         _text.read_only = true;
         _text.clear_word_highlight ();
-        _progress.has_chapters = true;
+        _progress.set_chapters (loaded.book.chapters);
         title = loaded.book.title;
 
         _word_index = loaded.index;
@@ -711,6 +733,7 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
     Gtk.Widget build_progress_side () {
         _progress = new ProgressPanel ();
         _progress.scope_changed.connect (update_time_left);
+        _progress.chapter_activated.connect (go_to_chapter);
 
         var side = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         side.append (_progress);
@@ -735,7 +758,7 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
     Gtk.ToggleButton build_progress_button () {
         var button = new Gtk.ToggleButton () {
             icon_name = "sidebar-show-symbolic",
-            tooltip_text = _ ("Show Progress (F9)"),
+            tooltip_text = _ ("Show Side Panel (F9)"),
         };
 
         AppSettings.settings.bind (
@@ -1021,6 +1044,20 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
         });
         _read.user_enabled_pivot = settings.get_boolean ("pivot-enabled");
 
+        var bionic_enabled = new Gtk.Switch () {
+            halign = Gtk.Align.END,
+        };
+        settings.bind (
+            "bionic-enabled",
+            bionic_enabled, "active",
+            SettingsBindFlags.DEFAULT
+        );
+        bionic_enabled.state_set.connect (new_state => {
+            _read.user_enabled_bionic = new_state;
+            return false;
+        });
+        _read.user_enabled_bionic = settings.get_boolean ("bionic-enabled");
+
         var use_libadwaita = new Gtk.Switch () {
             halign = Gtk.Align.END,
         };
@@ -1124,11 +1161,13 @@ class Spedread.MainWindow : Gtk.ApplicationWindow {
         contents.attach (_font_chooser, 1, 2, 1, 1);
         contents.attach (new Gtk.Label (_ ("Fixed Pivot")), 0, 3, 1, 1);
         contents.attach (pivot_enabled, 1, 3, 1, 1);
-        contents.attach (new Gtk.Label (_ ("Theme")), 0, 4, 1, 1);
-        contents.attach (_theme_chooser, 1, 4, 1, 1);
-        contents.attach (new Gtk.Label (_ ("Use libadwaita")), 0, 5, 1, 1);
-        contents.attach (use_libadwaita, 1, 5, 1, 1);
-        contents.attach (about_button, 0, 6, 2, 1);
+        contents.attach (new Gtk.Label (_ ("Bionic Reading")), 0, 4, 1, 1);
+        contents.attach (bionic_enabled, 1, 4, 1, 1);
+        contents.attach (new Gtk.Label (_ ("Theme")), 0, 5, 1, 1);
+        contents.attach (_theme_chooser, 1, 5, 1, 1);
+        contents.attach (new Gtk.Label (_ ("Use libadwaita")), 0, 6, 1, 1);
+        contents.attach (use_libadwaita, 1, 6, 1, 1);
+        contents.attach (about_button, 0, 7, 2, 1);
 
         popover.show.connect (popover_shown);
 

@@ -91,9 +91,10 @@ config_file = configure_file(
 )
 
 word_index_source = files('WordIndex.vala')
+bionic_text_source = files('BionicText.vala')
 epub_sources = files('epub/Book.vala', 'epub/EpubReader.vala')
 
-spedread_sources = word_index_source + epub_sources + files(
+spedread_sources = word_index_source + bionic_text_source + epub_sources + files(
     'App.vala',
     'epub/BookLoader.vala',
     'epub/BookStore.vala',

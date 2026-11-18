@@ -23,6 +23,7 @@ class Spedread.ReadTab : Gtk.Grid {
     PivotLabel _word;
     bool _is_default_text_shown = true;
     bool _user_enabled_pivot = false;
+    bool _user_enabled_bionic = false;
 
     /** The text shown on screen */
     public string word {
@@ -30,6 +31,7 @@ class Spedread.ReadTab : Gtk.Grid {
         set {
             _word.text = normalize_whitespace (value.strip ());
             _word.pivot_enabled = _user_enabled_pivot;
+            _word.bionic_enabled = _user_enabled_bionic;
             _is_default_text_shown = false;
         }
     }
@@ -49,6 +51,14 @@ class Spedread.ReadTab : Gtk.Grid {
         set {
             _user_enabled_pivot = value;
             _word.pivot_enabled = value && !_is_default_text_shown;
+        }
+    }
+
+    /** Whether the user enabled bionic reading in the app settings or not */
+    public bool user_enabled_bionic {
+        set {
+            _user_enabled_bionic = value;
+            _word.bionic_enabled = value && !_is_default_text_shown;
         }
     }
 
@@ -159,6 +169,7 @@ class Spedread.ReadTab : Gtk.Grid {
     public void reset_text () {
         _word.text = _default_text;
         _word.pivot_enabled = false;
+        _word.bionic_enabled = false;
         _is_default_text_shown = true;
     }
 

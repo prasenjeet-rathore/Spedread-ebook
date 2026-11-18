@@ -29,6 +29,13 @@
 			</description>
 			<default>false</default>
 		</key>
+		<key name="bionic-enabled" type="b">
+			<summary>Whether bionic reading is used</summary>
+			<description>
+				Whether the first half of each word is emphasized while reading
+			</description>
+			<default>false</default>
+		</key>
 		<key name="use-libadwaita" type="b">
 			<summary>Use libadwaita</summary>
 			<description>
@@ -55,6 +62,17 @@
 				Whether the reading progress panel is shown on the side of the window
 			</description>
 			<default>true</default>
+		</key>
+		<key name="side-panel-view" type="s">
+			<choices>
+				<choice value="progress"/>
+				<choice value="contents"/>
+			</choices>
+			<summary>Side panel view</summary>
+			<description>
+				Whether the side panel shows the reading progress or the table of contents
+			</description>
+			<default>"progress"</default>
 		</key>
 		<key name="progress-scope" type="s">
 			<choices>
